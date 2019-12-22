@@ -1,0 +1,42 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "build active file",
+            "type": "shell",
+            "command": "javac",
+            "args":[
+                //"-encoding UTF-8",
+                "-p", 
+                "/Library/Java/JavaVirtualMachines/javafx-sdk-11.0.2/lib", 
+                "--add-modules", 
+                "javafx.controls",
+                "${fileDirname}/${fileBasenameNoExtension}.java"
+            ],
+            "options": {
+                "cwd": "${fileDirname}"
+            },
+
+            "problemMatcher": {
+                "owner": "external",
+                "fileLocation": ["absolute"],
+                "pattern": [
+                {
+                    "regexp": "^(.+\\.java):(\\d):(?:\\s+(error)):(?:\\s+(.*))$",
+                    "file": 1,
+                    "location": 2,
+                    "severity": 3,
+                    "message": 4
+                }]
+            },
+
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        }
+    ]
+}
+
