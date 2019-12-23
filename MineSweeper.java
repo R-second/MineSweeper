@@ -46,8 +46,6 @@ public class MineSweeper extends Application {
 		
 		// configure stage
 		stage.setTitle("MineSweeper");
-		//stage.setWidth(600);
-		//stage.setWidth(600);
 		
 		// configure images
 		bombPic = new Image("bomb.png", 30, 30, false, false);
@@ -101,7 +99,7 @@ public class MineSweeper extends Application {
 		
 		// configure instruction label
 		Label instruction = new Label();
-		instruction.setText("sボタンを入力すると8*8モードスタート！\nEnterキーでフラッグモードと切り替えできます。矢印キーでボタンの選択を移動し、スペースキーでひらけます。\n爆弾以外の全てのマスを開ければ成功！");
+		instruction.setText("sキーを入力すると8*8モードスタート！\nEnterキーでフラッグモードと切り替えできます。矢印キーでボタンの選択を移動し、aキーでひらけます。\n爆弾以外の全てのマスを開ければ成功！");
 		instruction.setFont(new Font(15));
 
 
@@ -182,7 +180,7 @@ public class MineSweeper extends Application {
 	/*---- set KeyEvent ----*/
 	void doKeyAction(KeyEvent event){
 		switch (event.getCode()){
-		case ENTER:
+		case A:
 			flagUpdate();
 			break;
 		case S:

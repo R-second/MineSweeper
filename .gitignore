@@ -1,4 +1,3 @@
-MineSweeper.class
-Square.class
+*.class
 .classpath
 .vscode/
