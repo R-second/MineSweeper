@@ -101,7 +101,7 @@ public class MineSweeper extends Application {
 		
 		// configure instruction label
 		Label instruction = new Label();
-		instruction.setText("sボタンを入力するとスタート！\nEnterキーでフラッグモードと切り替えできます。矢印キーでボタンの選択を移動し、スペースキーでひらけます。\n爆弾以外の全てのマスを開ければ成功！");
+		instruction.setText("sボタンを入力すると8*8モードスタート！\nEnterキーでフラッグモードと切り替えできます。矢印キーでボタンの選択を移動し、スペースキーでひらけます。\n爆弾以外の全てのマスを開ければ成功！");
 		instruction.setFont(new Font(15));
 
 
