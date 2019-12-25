@@ -39,6 +39,13 @@ public class MineSweeper extends Application {
 	int column;
 
 	int cnt_bomb;
+
+	//シーンの宣言
+	Scene scenes[];
+	
+  
+
+
 	@Override
 	public void start(Stage stage) throws Exception{
 		column = 10;
@@ -136,9 +143,14 @@ public class MineSweeper extends Application {
 		stage.show();
 	}
 	
+
+	/* ---- initialize Scene ---- */
+	void initScene(){
+		
+	}
 	
 
-	/*---- initialize Square ---- */
+	/* ---- initialize Square ---- */
 	void initSquare(int square_size) {
 		cnt_bomb = (int)(column * column * 0.15);
 		leftIndicator.setText(Integer.toString(cnt_bomb));
