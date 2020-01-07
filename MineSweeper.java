@@ -22,12 +22,15 @@ import javafx.scene.text.Font;
 
 public class MineSweeper extends Application {
 
-	Image bombPic;	ImageView bombIv;
+	Image bombPic;		ImageView bombIv;
 	Image flagOnPic;	ImageView flagOnIv;
 	Image flagOffPic;	ImageView flagOffIv;
-	Image flagPic;	ImageView flagIv;
+	Image flagPic;		ImageView flagIv;
 	
 	Button flagButton;
+
+	
+
 	Square grid[][];
 	Label leftIndicator;
 	
@@ -35,20 +38,26 @@ public class MineSweeper extends Application {
 	Alert successInfo;
 	
 	int flag = 0;
-			
+	
 	int column;
+
+	HBox hbox;
+	Label instruction;
+	MenuBar menubar;
 
 	int cnt_bomb;
 
-	//シーンの宣言
-	Scene scenes[];
+	// state Scene
+	Scene sceneBase;
+	Scene scenes[] = { null, null, null};
 	
-  
+	// state column
+	int column_list[] = { 10, 15, 20 };
 
 
 	@Override
 	public void start(Stage stage) throws Exception{
-		column = 10;
+		//column = 20;
 		
 		
 		// configure stage
@@ -65,13 +74,16 @@ public class MineSweeper extends Application {
 		flagIv = new ImageView(flagPic);
 		
 		// configure menubar
-		MenuBar menubar = new MenuBar();
+		menubar = new MenuBar();
 		Menu gameMenu = new Menu("SELECT GAME");
-		MenuItem easyMenu = new MenuItem("easy:8 * 8");
+		MenuItem easyMenu = new MenuItem("easy:10 * 10");
 		MenuItem hardMenu = new MenuItem("hard:15 * 15");
-		MenuItem hardestMenu = new MenuItem("hardest:30 * 30");
-		easyMenu.setOnAction(event -> initSquare(column));		       // when clicked easy-menu
-		gameMenu.getItems().addAll(easyMenu, hardMenu, hardestMenu);
+		MenuItem hardestMenu = new MenuItem("hardest:20 * 20");
+		MenuItem shortcutMenu = new MenuItem("shortcut-key");
+		easyMenu.setOnAction(event -> setupScene(stage, 0));
+		hardMenu.setOnAction(event -> setupScene(stage, 1));
+		hardestMenu.setOnAction(event -> setupScene(stage, 2));
+		gameMenu.getItems().addAll(easyMenu, hardMenu, hardestMenu, shortcutMenu);
 		menubar.getMenus().addAll(gameMenu);
 		
 		// configure "GAMEOVER" information
@@ -82,6 +94,62 @@ public class MineSweeper extends Application {
 		successInfo = new Alert(AlertType.INFORMATION, "CLEAR");
 		successInfo.setContentText("SUCCESS!!!!!!");
 		
+		
+		
+		// configure instruction label
+		instruction = new Label();
+		instruction.setText("ショートカットキー 一覧は Qキー で開きます。\n爆弾以外の全てのマスを開ければ成功！");
+		instruction.setFont(new Font(15));
+
+		//Enterキーでフラッグモードと切り替えできます。矢印キーでボタンの選択を移動し、aキーでひらけます。\n
+
+
+		// configure flag button
+		flagButton = new Button();
+		flagButton.setMaxWidth(Double.MAX_VALUE);
+		flagButton.setMaxHeight(Double.MAX_VALUE);
+		flagButton.setPrefWidth(60);
+		flagButton.setPrefHeight(60);
+		flagButton.setOnAction(event -> flagUpdate());
+		flagButton.setGraphic(flagOffIv);
+		
+
+		Label leftInfo = new Label("残り");
+		leftInfo.setFont(new Font(30));
+		leftIndicator = new Label(Integer.toString(cnt_bomb));
+		leftIndicator.setFont(new Font(30));
+		leftIndicator.setMinWidth(60);
+		
+		// layout
+		hbox = new HBox(20);	
+		hbox.setAlignment(Pos.CENTER_LEFT);
+		hbox.getChildren().addAll(flagButton, leftInfo, leftIndicator, instruction);
+		
+		VBox root = new VBox();
+		root.setAlignment(Pos.CENTER);
+		root.getChildren().addAll(menubar, hbox);
+		
+		sceneBase = new Scene(root);
+
+
+		stage.setScene(sceneBase);
+		stage.show();
+	}
+	
+
+	/* ---- change Scene ---- */
+	void setupScene(Stage stage, int scene_number) {
+		initScene(scene_number);
+		stage.setScene(scenes[scene_number]);
+		stage.show();
+		initSquare();
+	}
+
+	/* ---- initialize Scene ---- */
+	void initScene(int scene_number){
+
+		column = column_list[scene_number];
+
 		// configure array Square
 		// Layout Square with gridPane
 		GridPane gridLayout = new GridPane();
@@ -103,55 +171,21 @@ public class MineSweeper extends Application {
 				GridPane.setVgrow(grid[i][j], Priority.ALWAYS);
 			}
 		}
-		
-		// configure instruction label
-		Label instruction = new Label();
-		instruction.setText("sキーを入力すると8*8モードスタート！\nEnterキーでフラッグモードと切り替えできます。矢印キーでボタンの選択を移動し、aキーでひらけます。\n爆弾以外の全てのマスを開ければ成功！");
-		instruction.setFont(new Font(15));
 
-
-		// configure flag button
-		flagButton = new Button();
-		flagButton.setMaxWidth(Double.MAX_VALUE);
-		flagButton.setMaxHeight(Double.MAX_VALUE);
-		flagButton.setPrefWidth(60);
-		flagButton.setPrefHeight(60);
-		flagButton.setOnAction(event -> flagUpdate());
-		flagButton.setGraphic(flagOffIv);
-		
-		// configure label`
-		Label space = new Label("");
-		space.setPrefWidth(80);
-
-		Label leftInfo = new Label("残り");
-		leftInfo.setFont(new Font(30));
-		leftIndicator = new Label(Integer.toString(cnt_bomb));
-		leftIndicator.setFont(new Font(30));
-		
-		// layout
-		HBox hbox = new HBox(20);	
-		hbox.setAlignment(Pos.CENTER_LEFT);
-		hbox.getChildren().addAll(flagButton, space, leftInfo, leftIndicator);
-		
 		VBox root = new VBox();
 		root.setAlignment(Pos.CENTER);
-		root.getChildren().addAll(menubar, instruction, hbox, gridLayout);
-		
-		Scene scene = new Scene(root);
-		scene.setOnKeyPressed(event -> doKeyAction(event));
-		stage.setScene(scene);
-		stage.show();
-	}
-	
+		root.getChildren().addAll(menubar, hbox);
+		root.getChildren().addAll(gridLayout);
 
-	/* ---- initialize Scene ---- */
-	void initScene(){
+		scenes[scene_number] = new Scene(root);
+		scenes[scene_number].setOnKeyPressed(event -> doKeyAction(event));
+
 		
 	}
 	
 
 	/* ---- initialize Square ---- */
-	void initSquare(int square_size) {
+	void initSquare() {
 		cnt_bomb = (int)(column * column * 0.15);
 		leftIndicator.setText(Integer.toString(cnt_bomb));
 		
@@ -180,8 +214,8 @@ public class MineSweeper extends Application {
 		}
 		
 		// set counts of bomb around itself
-		for(i=0; i<square_size; i++)
-			for(int j=0; j<square_size; j++) 
+		for(i=0; i<column; i++)
+			for(int j=0; j<column; j++) 
 				if(grid[i][j].STATE == 0) {
 					c = countBomb(i, j);  // count bomb
 					grid[i][j].STATE = c;  // change STATE
@@ -195,8 +229,11 @@ public class MineSweeper extends Application {
 		case A:
 			flagUpdate();
 			break;
-		case S:
-			initSquare(column);
+		case R:
+			initSquare();
+			break;
+		case Q:
+			// short-cut key menu
 			break;
 		default:
 			break;
