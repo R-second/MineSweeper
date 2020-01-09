@@ -22,56 +22,52 @@ import javafx.scene.text.Font;
 
 public class MineSweeper extends Application {
 
-	Image bombPic;		ImageView bombIv;
+	// Images 
+	Image bombPic;
 	Image flagOnPic;	ImageView flagOnIv;
 	Image flagOffPic;	ImageView flagOffIv;
-	Image flagPic;		ImageView flagIv;
+	Image flagPic;
 	
+	// GUI composits
 	Button flagButton;
-
-	
-
 	Square grid[][];
+
 	Label leftIndicator;
+	Label shortcut;
+	Label instruction;
 	
 	Alert gameover;
 	Alert successInfo;
-	
-	int flag = 0;
-	
-	int column;
 
 	HBox hbox;
-	Label instruction;
 	MenuBar menubar;
 
-	int cnt_bomb;
-
 	// state Scene
-	Scene sceneBase;
-	Scene scenes[] = { null, null, null};
+	Scene scenes[] = { null, null, null };
+	Scene shortcutScene = null;
 	
 	// state column
 	int column_list[] = { 10, 15, 20 };
+	int current_column;
+
+	// state flag and counter for flag(bomb)
+	int flag = 0;
+	int cnt_bomb;
 
 
 	@Override
 	public void start(Stage stage) throws Exception{
-		//column = 20;
-		
-		
 		// configure stage
 		stage.setTitle("MineSweeper");
 		
 		// configure images
 		bombPic = new Image("bomb.png", 30, 30, false, false);
-		bombIv = new ImageView(bombPic);
+		ImageView bombIv = new ImageView(bombPic);
 		flagOnPic = new Image("flagOn.png", 80, 80, false, false);
 		flagOnIv = new ImageView(flagOnPic);
 		flagOffPic = new Image("flagOff.png", 80, 80, false, false);
 		flagOffIv = new ImageView(flagOffPic);
 		flagPic = new Image("flagOn.png", 30, 30, false, false);
-		flagIv = new ImageView(flagPic);
 		
 		// configure menubar
 		menubar = new MenuBar();
@@ -83,6 +79,7 @@ public class MineSweeper extends Application {
 		easyMenu.setOnAction(event -> setupScene(stage, 0));
 		hardMenu.setOnAction(event -> setupScene(stage, 1));
 		hardestMenu.setOnAction(event -> setupScene(stage, 2));
+		shortcutMenu.setOnAction(event -> setupShortcut(stage));
 		gameMenu.getItems().addAll(easyMenu, hardMenu, hardestMenu, shortcutMenu);
 		menubar.getMenus().addAll(gameMenu);
 		
@@ -100,8 +97,6 @@ public class MineSweeper extends Application {
 		instruction = new Label();
 		instruction.setText("ショートカットキー 一覧は Qキー で開きます。\n爆弾以外の全てのマスを開ければ成功！");
 		instruction.setFont(new Font(15));
-
-		//Enterキーでフラッグモードと切り替えできます。矢印キーでボタンの選択を移動し、aキーでひらけます。\n
 
 
 		// configure flag button
@@ -128,34 +123,49 @@ public class MineSweeper extends Application {
 		VBox root = new VBox();
 		root.setAlignment(Pos.CENTER);
 		root.getChildren().addAll(menubar, hbox);
-		
-		sceneBase = new Scene(root);
 
+		shortcut = new Label();
+		shortcut.setText("ショートカットキー memo\n\tqキー：説明\n\t1キー：easyモード\n\t2キー：hardモード\n\t3キー：hardestモード\n\t矢印：ボタン移動\n\tスペースキー： (mac) 開く\n\tENTER： (windows) 開く\n\taキー：フラッグを立てる\n\trキー：もう一度初めから再開");
+		shortcut.setFont(new Font(15));
+		shortcut.setMinHeight(300);
 
-		stage.setScene(sceneBase);
-		stage.show();
+		setupScene(stage, 0);
 	}
-	
+
 
 	/* ---- change Scene ---- */
 	void setupScene(Stage stage, int scene_number) {
-		initScene(scene_number);
+		initScene(scene_number, stage);
 		stage.setScene(scenes[scene_number]);
 		stage.show();
 		initSquare();
 	}
 
-	/* ---- initialize Scene ---- */
-	void initScene(int scene_number){
+	/* ----- initialize and setup ShortcutScene ---- */
+	void setupShortcut(Stage stage) {
+		VBox root = new VBox();
+		root.setAlignment(Pos.CENTER);
+		root.getChildren().addAll(menubar, hbox);
+		root.getChildren().addAll(shortcut);
 
-		column = column_list[scene_number];
+		shortcutScene = new Scene(root);
+		shortcutScene.setOnKeyPressed(event -> doKeyAction(event, stage));
+
+		stage.setScene(shortcutScene);
+		stage.show();
+	}
+
+	/* ---- initialize Scene ---- */
+	void initScene(int scene_number, Stage stage){
+
+		current_column = column_list[scene_number];
 
 		// configure array Square
 		// Layout Square with gridPane
 		GridPane gridLayout = new GridPane();
-		grid = new Square[column][column];
-		for(int i=0; i<column; i++) {
-			for(int j=0; j<column; j++) {
+		grid = new Square[current_column][current_column];
+		for(int i = 0; i < current_column; i++) {
+			for(int j = 0; j < current_column; j++) {
 				grid[i][j] = new Square();
 				grid[i][j].setMinWidth(Double.MIN_VALUE);
 				grid[i][j].setMinHeight(Double.MIN_VALUE);
@@ -163,8 +173,8 @@ public class MineSweeper extends Application {
 				grid[i][j].setPrefHeight(60);
 				grid[i][j].setMaxWidth(Double.MAX_VALUE);
 				grid[i][j].setMaxHeight(Double.MAX_VALUE);
-				
 				grid[i][j].setOnAction(event -> gridClicked(event));
+
 				GridPane.setConstraints(grid[i][j], j, i);
 				gridLayout.getChildren().add(grid[i][j]);
 				GridPane.setHgrow(grid[i][j], Priority.ALWAYS);
@@ -178,7 +188,7 @@ public class MineSweeper extends Application {
 		root.getChildren().addAll(gridLayout);
 
 		scenes[scene_number] = new Scene(root);
-		scenes[scene_number].setOnKeyPressed(event -> doKeyAction(event));
+		scenes[scene_number].setOnKeyPressed(event -> doKeyAction(event, stage));
 
 		
 	}
@@ -186,12 +196,12 @@ public class MineSweeper extends Application {
 
 	/* ---- initialize Square ---- */
 	void initSquare() {
-		cnt_bomb = (int)(column * column * 0.15);
+		cnt_bomb = (int)(current_column * current_column * 0.15);
 		leftIndicator.setText(Integer.toString(cnt_bomb));
 		
 
-		for(int i=0; i<column; i++) {
-			for(int j=0; j<column; j++) {
+		for(int i = 0; i < current_column; i++) {
+			for(int j = 0; j < current_column; j++) {
 				grid[i][j].STATE = 0; 
 				grid[i][j].flagSTATE = 0;
 				grid[i][j].setDisableSTATE(false);
@@ -205,8 +215,8 @@ public class MineSweeper extends Application {
 		// configure bomb with random number 
 		int i=0;
 		while(i<cnt_bomb) {
-			randA = (int)(Math.random()*column);
-			randB = (int)(Math.random()*column);
+			randA = (int)(Math.random()*current_column);
+			randB = (int)(Math.random()*current_column);
 			if(grid[randA][randB].STATE == 0) {
 				grid[randA][randB].STATE = -1;   // change STATE
 				i++;
@@ -214,8 +224,8 @@ public class MineSweeper extends Application {
 		}
 		
 		// set counts of bomb around itself
-		for(i=0; i<column; i++)
-			for(int j=0; j<column; j++) 
+		for(i = 0; i < current_column; i++)
+			for(int j = 0; j < current_column; j++) 
 				if(grid[i][j].STATE == 0) {
 					c = countBomb(i, j);  // count bomb
 					grid[i][j].STATE = c;  // change STATE
@@ -224,16 +234,25 @@ public class MineSweeper extends Application {
 
 
 	/*---- set KeyEvent ----*/
-	void doKeyAction(KeyEvent event){
+	void doKeyAction(KeyEvent event, Stage stage){
 		switch (event.getCode()){
-		case A:
+		case Q:		// shortcut key
+			setupShortcut(stage);
+			break;
+		case DIGIT1:		// easy mode
+			setupScene(stage, 0);
+			break;
+		case DIGIT2:		// hard mode
+			setupScene(stage, 1);
+			break;
+		case DIGIT3:		// hardest mode
+			setupScene(stage, 2);
+			break;
+		case A:				// update flag
 			flagUpdate();
 			break;
-		case R:
+		case R:				// restart game
 			initSquare();
-			break;
-		case Q:
-			// short-cut key menu
 			break;
 		default:
 			break;
@@ -252,7 +271,7 @@ public class MineSweeper extends Application {
 		
 		if(flag == 0) {
 			if (grid[y][x].STATE == -1) { 
-				grid[y][x].setGraphic(bombIv);
+				grid[y][x].setGraphic(new ImageView(bombPic));
 				gameover.showAndWait();
 				square_open();
 			} else { 
@@ -292,11 +311,11 @@ public class MineSweeper extends Application {
 			judge_success();
 		} else if (grid[y][x].STATE == 0) {
 			int i = y-1;
-			while(i<=y+1 & i<=column-1) {
+			while(i <= y+1 && i <= current_column-1) {
 				int j = x-1;
-				while( j<=x+1 & j<=column-1 ) {
-					if ( i == y & j == x ) grid[y][x].setDisableSTATE(true);
-					else if (i >= 0 & j >= 0) if(!grid[i][j].getDisableSTATE()) {
+				while( j <= x+1 && j <= current_column-1 ) {
+					if ( i == y && j == x ) grid[y][x].setDisableSTATE(true);
+					else if (i >= 0 && j >= 0) if(!grid[i][j].getDisableSTATE()) {
 						grid[i][j].setDisableSTATE(true);
 						squareProcess(i, j);
 					}
@@ -310,14 +329,14 @@ public class MineSweeper extends Application {
 	/*---- judge success and show success infomation ----*/
 	void judge_success(){
 		int i=0, j=0;
-		grid: for (i = 0; i < column; i++){
-			for (j = 0; j < column; j++){
+		grid: for (i = 0; i < current_column; i++){
+			for (j = 0; j < current_column; j++){
 				if(grid[i][j].STATE >= 0 & !(grid[i][j].getDisableSTATE())){
 					break grid;
 				}
 			}
 		}
-		if (i==column & j==column){
+		if (i == current_column && j == current_column){
 			successInfo.showAndWait();
 			square_open();
 		}
@@ -337,21 +356,21 @@ public class MineSweeper extends Application {
 	
 	/*---- make all squares open ----*/
 	void square_open(){
-		//String[] = {""}
-		for (int i = 0; i < column; i++){
-			for (int j = 0; j < column; j++){
+		for (int i = 0; i < current_column; i++){
+			for (int j = 0; j < current_column; j++){
 				if (grid[i][j].STATE == -1 ) grid[i][j].setGraphic(new ImageView(bombPic));
 				else if(grid[i][j].STATE > 0) grid[i][j].setText(Integer.toString(grid[i][j].STATE));
 				grid[i][j].setDisableSTATE(true);
 			}
 		}
+		leftIndicator.setText("0");
 	}
 
 	/*---- search Square and return index of it ----*/
 	int[] searchSquare(Square search) {
 		int[] index = new int[2];
-		for(int i=0; i<column; i++) {
-			for(int j=0; j<column; j++) {
+		for(int i = 0; i < current_column; i++) {
+			for(int j = 0; j < current_column; j++) {
 				if(grid[i][j] == search) {
 					index[0] = i;
 					index[1] = j;
@@ -365,9 +384,9 @@ public class MineSweeper extends Application {
 	int countBomb(int y, int x) {
 		int sum = 0;
 		int i=y-1, j;
-		while(i<=y+1 & i<=column-1) {
+		while(i <= y+1 & i <= current_column-1) {
 			j = x-1;
-			while(j<=x+1 & j<=column-1) {
+			while(j <= x+1 & j <= current_column-1) {
 				if(i >= 0 & j >= 0)
 					if(grid[i][j].STATE == -1) sum++;
 				j++;
