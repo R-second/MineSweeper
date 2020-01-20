@@ -42,6 +42,8 @@ public class MineSweeper extends Application {
 	HBox hbox;
 	MenuBar menubar;
 
+	Stage stage2;		// for instruction window
+
 	// state Scene
 	Scene scenes[] = { null, null, null };
 	Scene shortcutScene = null;
@@ -55,8 +57,14 @@ public class MineSweeper extends Application {
 	int cnt_bomb;
 
 
+
 	@Override
 	public void start(Stage stage) throws Exception{
+		stage2 = new Stage();
+		stage2.setWidth(350);
+		stage2.setHeight(350);
+
+
 		// configure stage
 		stage.setTitle("MineSweeper");
 		
@@ -79,20 +87,21 @@ public class MineSweeper extends Application {
 		easyMenu.setOnAction(event -> setupScene(stage, 0));
 		hardMenu.setOnAction(event -> setupScene(stage, 1));
 		hardestMenu.setOnAction(event -> setupScene(stage, 2));
-		shortcutMenu.setOnAction(event -> setupShortcut(stage));
+		shortcutMenu.setOnAction(event -> setupShortcut(stage2));
 		gameMenu.getItems().addAll(easyMenu, hardMenu, hardestMenu, shortcutMenu);
 		menubar.getMenus().addAll(gameMenu);
 		
+
 		// configure "GAMEOVER" information
 		gameover = new Alert(AlertType.INFORMATION, "GAMEOVER");
 		gameover.setContentText("GAMEOVER!!!!!!");
+
 
 		// configure "SUCCESS" information
 		successInfo = new Alert(AlertType.INFORMATION, "CLEAR");
 		successInfo.setContentText("SUCCESS!!!!!!");
 		
-		
-		
+
 		// configure instruction label
 		instruction = new Label();
 		instruction.setText("ショートカットキー 一覧は Qキー で開きます。\n爆弾以外の全てのマスを開ければ成功！");
@@ -129,6 +138,8 @@ public class MineSweeper extends Application {
 		shortcut.setFont(new Font(15));
 		shortcut.setMinHeight(300);
 
+		initShortcut(stage);
+
 		setupScene(stage, 0);
 	}
 
@@ -141,18 +152,21 @@ public class MineSweeper extends Application {
 		initSquare();
 	}
 
-	/* ----- initialize and setup ShortcutScene ---- */
+	/* ----- setup ShortcutScene ---- */
 	void setupShortcut(Stage stage) {
+		stage.setScene(shortcutScene);
+		stage.show();
+
+	}
+
+	/* ----- initialize ShortcutScene (only one) ----- */
+	void initShortcut(Stage stage) {
 		VBox root = new VBox();
 		root.setAlignment(Pos.CENTER);
-		root.getChildren().addAll(menubar, hbox);
 		root.getChildren().addAll(shortcut);
 
 		shortcutScene = new Scene(root);
 		shortcutScene.setOnKeyPressed(event -> doKeyAction(event, stage));
-
-		stage.setScene(shortcutScene);
-		stage.show();
 	}
 
 	/* ---- initialize Scene ---- */
@@ -237,7 +251,7 @@ public class MineSweeper extends Application {
 	void doKeyAction(KeyEvent event, Stage stage){
 		switch (event.getCode()){
 		case Q:		// shortcut key
-			setupShortcut(stage);
+			setupShortcut(stage2);
 			break;
 		case DIGIT1:		// easy mode
 			setupScene(stage, 0);
