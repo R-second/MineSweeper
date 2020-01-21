@@ -18,6 +18,9 @@ import javafx.scene.input.KeyEvent;
 import javafx.event.ActionEvent;
 import javafx.geometry.Pos;
 import javafx.scene.text.Font;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
+import javafx.util.Duration;
 
 
 public class MineSweeper extends Application {
@@ -35,6 +38,10 @@ public class MineSweeper extends Application {
 	Label leftIndicator;
 	Label shortcut;
 	Label instruction;
+
+
+
+	Label timeInfo;
 	
 	Alert gameover;
 	Alert successInfo;
@@ -56,6 +63,10 @@ public class MineSweeper extends Application {
 	int flag = 0;
 	int cnt_bomb;
 
+	int[] time = {0, 0};
+
+
+	Timeline timeline;
 
 
 	@Override
@@ -119,15 +130,28 @@ public class MineSweeper extends Application {
 		
 
 		Label leftInfo = new Label("残り");
-		leftInfo.setFont(new Font(30));
+		leftInfo.setFont(new Font(20));
 		leftIndicator = new Label(Integer.toString(cnt_bomb));
 		leftIndicator.setFont(new Font(30));
-		leftIndicator.setMinWidth(60);
+		leftIndicator.setMinWidth(50);
+
+
+		timeInfo = new Label(String.format("%02d", time[0]) + ":" + String.format("%02d", time[1]));
+		timeInfo.setFont(new Font(30));
+		timeInfo.setMinWidth(40);
+
+
+		// configure timeline
+		timeline = new Timeline(
+			new KeyFrame(Duration.millis(1000.0), e->setTime())
+		);
+		timeline.setCycleCount(Timeline.INDEFINITE);
+		
 		
 		// layout
 		hbox = new HBox(20);	
 		hbox.setAlignment(Pos.CENTER_LEFT);
-		hbox.getChildren().addAll(flagButton, leftInfo, leftIndicator, instruction);
+		hbox.getChildren().addAll(flagButton, leftInfo, leftIndicator, timeInfo, instruction);
 		
 		VBox root = new VBox();
 		root.setAlignment(Pos.CENTER);
@@ -141,6 +165,7 @@ public class MineSweeper extends Application {
 		initShortcut(stage);
 
 		setupScene(stage, 0);
+
 	}
 
 
@@ -244,7 +269,24 @@ public class MineSweeper extends Application {
 					c = countBomb(i, j);  // count bomb
 					grid[i][j].STATE = c;  // change STATE
 				}
+			
+		// configure time 
+		time[0] = 0;
+		time[1] = 0;
+		timeline.play();
 	}
+
+
+	/*---- set Time ----*/
+	void setTime() {
+		time[1]++;
+		if (time[1] == 60) { 
+			time[0]++;
+			time[1] = 0;
+		}
+		timeInfo.setText(String.format("%02d", time[0]) + ":" + String.format("%02d", time[1]));
+	}
+
 
 
 	/*---- set KeyEvent ----*/
@@ -286,6 +328,7 @@ public class MineSweeper extends Application {
 		if(flag == 0) {
 			if (grid[y][x].STATE == -1) { 
 				grid[y][x].setGraphic(new ImageView(bombPic));
+				timeline.stop();
 				gameover.showAndWait();
 				square_open();
 			} else { 
@@ -351,6 +394,7 @@ public class MineSweeper extends Application {
 			}
 		}
 		if (i == current_column && j == current_column){
+			timeline.stop();
 			successInfo.showAndWait();
 			square_open();
 		}
